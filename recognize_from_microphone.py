@@ -13,7 +13,7 @@ from libs.db_sqlite import Database as SqliteDatabase
 
 if __name__ == '__main__':
 
-  db = SqliteDatabase()
+  db = SqliteDatabase('db/fingerprints2.db')
 
   parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
   parser.add_argument('-s', '--seconds', nargs='?')

@@ -1,14 +1,17 @@
 #!/usr/bin/python
-from libs.db_sqlite import Database as SqliteDatabase
+from libs.db_sqlite import Database as SQLDatabase
 from termcolor import colored
+from libs.config import (FINGERPRINTS_TABLENAME, SONGS_TABLENAME)
 
 # get summary information
 def printSummary():
+  print("-------")
+  print(db)
   row = db.executeOne("""
     SELECT
-      (SELECT COUNT(*) FROM songs) as songs_count,
+      (SELECT COUNT(*) FROM {}) as songs_count,
       (SELECT COUNT(*) FROM fingerprints) as fingerprints_count
-  """)
+  """.format(SONGS_TABLENAME))
 
   msg = ' * %s: %s (%s)' % (
     colored('total', 'yellow'),             # total
@@ -26,9 +29,9 @@ def printSongs():
       s.id,
       s.name,
       (SELECT count(f.id) FROM fingerprints AS f WHERE f.song_fk = s.id) AS fingerprints_count
-    FROM songs AS s
+    FROM {} AS s
     ORDER BY fingerprints_count DESC
-  """)
+  """.format(SONGS_TABLENAME))
 
   for row in rows:
     msg = '   ** %s %s: %s' % (
@@ -44,14 +47,14 @@ def printDuplicates():
     SELECT a.song_fk, s.name, SUM(a.cnt)
     FROM (
       SELECT song_fk, COUNT(*) cnt
-      FROM fingerprints
+      FROM {}
       GROUP BY hash, song_fk, offset
       HAVING cnt > 1
       ORDER BY cnt ASC
     ) a
-    JOIN songs s ON s.id = a.song_fk
+    JOIN {} s ON s.id = a.song_fk
     GROUP BY a.song_fk
-  """)
+  """.format(FINGERPRINTS_TABLENAME,SONGS_TABLENAME))
 
   msg = ' * duplications: %s' % colored('%d song(s)', 'yellow')
   print (msg % len(rows))
@@ -71,11 +74,11 @@ def printColissions():
       SELECT
         hash,
         count(distinct song_fk) AS n
-      FROM fingerprints
+      FROM 
       GROUP BY `hash`
       ORDER BY n DESC
     ) a
-  """)
+  """.format(FINGERPRINTS_TABLENAME))
 
   msg = ' * colissions: %s' % colored('%d hash(es)', 'red')
   val = 0
@@ -85,7 +88,7 @@ def printColissions():
   print( msg % val)
 
 if __name__ == '__main__':
-  db = SqliteDatabase()
+  db = SQLDatabase('db/fingerprints2.db')
   print( '')
 
   x = printSummary()

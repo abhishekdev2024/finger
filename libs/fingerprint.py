@@ -65,7 +65,7 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
                 wratio=DEFAULT_OVERLAP_RATIO,
                 fan_value=DEFAULT_FAN_VALUE,
                 amp_min=DEFAULT_AMP_MIN,
-                plots=False):
+                plots=False,show_spec=False):
     
     # show samples plot
     if plots:
@@ -119,39 +119,38 @@ def get_2D_peaks(arr2D, plot=False, amp_min=DEFAULT_AMP_MIN):
     # find local maxima using our fliter shape
     local_max = maximum_filter(arr2D, footprint=neighborhood) == arr2D
     background = (arr2D == 0)
-    eroded_background = binary_erosion(background, structure=neighborhood,
-                                       border_value=1)  
+    eroded_background = binary_erosion(background, structure=neighborhood, border_value=1)
 
     # Boolean mask of arr2D with True at peaks
-    detected_peaks = local_max ^ eroded_background  
+    # detected_peaks = local_max ^ eroded_background  
+    # Create a boolean mask of arr2D with True at peaks
+    detected_peaks = local_max & (arr2D > amp_min)
 
     # extract peaks
     amps = arr2D[detected_peaks]
-    j, i = np.where(detected_peaks)
-
-
+    freqs, times = np.where(detected_peaks)
+    
     # filter peaks
     amps = amps.flatten()
-    peaks = zip(i, j, amps)
-    peaks_filtered = [x for x in peaks if x[2] > amp_min]  # freq, time, amp
-
 
     # get indices for frequency and time
-    frequency_idx = [x[1] for x in peaks_filtered]
-    time_idx = [x[0] for x in peaks_filtered]
-
-    # scatter of the peaks
+    filter_idxs = np.where(amps > amp_min)
+    
+    freqs_filter = freqs[filter_idxs]
+    times_filter = times[filter_idxs]
+    
     if plot:
+         # scatter of the peaks
         fig, ax = plt.subplots()
         ax.imshow(arr2D)
-        ax.scatter(time_idx, frequency_idx)
+        ax.scatter(times_filter, freqs_filter)
         ax.set_xlabel('Time')
         ax.set_ylabel('Frequency')
         ax.set_title("Spectrogram")
-        plt.gca().invert_yaxis()
+        # plt.gca().invert_yaxis()
         plt.show()
-
-    return list(zip(frequency_idx, time_idx))
+        
+    return list(zip(freqs_filter, times_filter))
 
 
 

@@ -5,8 +5,7 @@ from pydub.utils import audioop
 import numpy as np
 from hashlib import sha1
 
-import pydub
-# pydub.AudioSegment.ffmpeg = "/absolute/path/to/ffmpeg"
+
 
 
 

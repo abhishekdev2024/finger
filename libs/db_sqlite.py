@@ -3,14 +3,11 @@ from sqlite3 import Error
 from libs.db import Database
 from termcolor import colored
 from itertools import zip_longest
-from libs.config import (FIELD_FILE_SHA1, FIELD_FINGERPRINTED,
-                                    FIELD_HASH, FIELD_OFFSET, FIELD_SONG_ID,
-                                    FIELD_SONGNAME, FIELD_TOTAL_HASHES,
-                                    FINGERPRINTS_TABLENAME, SONGS_TABLENAME)
+from libs.config import (FINGERPRINTS_TABLENAME, SONGS_TABLENAME)
 
 class SQLDatabase(Database):
-    TABLE_SONGS = 'songs'
-    TABLE_FINGERPRINTS = 'fingerprints'
+    TABLE_SONGS = SONGS_TABLENAME
+    TABLE_FINGERPRINTS = FINGERPRINTS_TABLENAME
     def __init__(self, db_path):
         self.db_path = db_path
         self.conn = sqlite3.connect(self.db_path)
@@ -27,18 +24,18 @@ class SQLDatabase(Database):
     def create_tables(self):
         try:
             # Create songs table if not exists
-            self.cur.execute('''CREATE TABLE IF NOT EXISTS songs (
+            self.cur.execute('''CREATE TABLE IF NOT EXISTS {} (
                                 id INTEGER PRIMARY KEY,
                                 name TEXT NOT NULL,
-                                filehash TEXT NOT NULL UNIQUE)''')
+                                filehash TEXT NOT NULL UNIQUE)'''.format(SONGS_TABLENAME))
             
             # Create fingerprints table if not exists
-            self.cur.execute('''CREATE TABLE IF NOT EXISTS fingerprints (
+            self.cur.execute('''CREATE TABLE IF NOT EXISTS {} (
                                 id INTEGER PRIMARY KEY,
                                 song_fk INTEGER NOT NULL,
                                 hash TEXT NOT NULL,
                                 offset INTEGER NOT NULL,
-                                FOREIGN KEY(song_fk) REFERENCES songs(id))''')
+                                FOREIGN KEY(song_fk) REFERENCES {}(id))'''.format(FINGERPRINTS_TABLENAME,SONGS_TABLENAME))
             print(colored('sqlite - tables created','white',attrs=['dark']))
             self.conn.commit()
         except Error as e:
