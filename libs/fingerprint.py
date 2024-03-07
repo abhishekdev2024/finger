@@ -69,6 +69,7 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
     
     # show samples plot
     if plots:
+       print('Show Channel Samples Plot')
        plt.plot(channel_samples)
        plt.title('%d samples' % len(channel_samples))
        plt.xlabel('time (s)')
